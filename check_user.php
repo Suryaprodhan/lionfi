@@ -9,10 +9,10 @@ function logMessage($message) {
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $servername = "sql206.infinityfree.com";
-    $username = "if0_37403816";
-    $password = "AsdfghjKl";
-    $dbname = "if0_37403816_lionstar";
+    $servername = "sql110.infinityfree.com";
+    $username = "if0_37115834";
+    $password = "JKIGuiBUdr";
+    $dbname = "if0_37115834_lionfi";
     $bot_token = "7639835056:AAF6F1Pos-mKnjXsrSVQMk9JyKsFcKnArHQ"; // Replace with your bot token
 
     $conn = new mysqli($servername, $username, $password, $dbname);
