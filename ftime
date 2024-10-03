@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Telegram Airdrop</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      background-color: #000;
+      color: #fff;
+      margin: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+
+    #airdropInfoPage, #verificationPage, #rewardPage, #loadingPage {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+    }
+
+    #airdropInfoPage.active, #verificationPage.active, #rewardPage.active, #loadingPage.active {
+      display: flex;
+    }
+
+    button {
+      padding: 10px 20px;
+      margin-top: 20px;
+      background-color: #fff;
+      color: #000;
+      border: none;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #ddd;
+    }
+
+    .completed {
+      color: #0f0;
+    }
+
+    .progress-bar {
+      width: 100%;
+      background-color: #ddd;
+      border-radius: 5px;
+      overflow: hidden;
+      margin: 10px 0;
+    }
+
+    .progress-bar-inner {
+      height: 20px;
+      width: 0;
+      background-color: #4caf50;
+      text-align: center;
+      line-height: 20px;
+      color: white;
+      transition: width 0.3s;
+    }
+
+    #pageUrl {
+      margin-top: 20px;
+      color: #ddd;
+    }
+  </style>
+</head>
+<body>
+  <div id="airdropInfoPage" class="active">
+    <h1>Hey there.</h1>
+    <p>You've been in Telegram for a while. It's time to start this journey and get the rewards.</p>
+    <button onclick="startVerification()">Wow, Claim Reward</button>
+    <p id="pageUrl"></p>
+  </div>
+
+  <div id="verificationPage">
+    <h1>Checking your account</h1>
+    <div class="progress-bar">
+      <div id="accountAge" class="progress-bar-inner">Account Age</div>
+    </div>
+    <div class="progress-bar">
+      <div id="activityLevel" class="progress-bar-inner">Activity Level</div>
+    </div>
+    <div class="progress-bar">
+      <div id="telegramPremium" class="progress-bar-inner">Telegram Premium</div>
+    </div>
+    <div class="progress-bar">
+      <div id="ogStatus" class="progress-bar-inner">OG Status</div>
+    </div>
+    <button id="continueButton" style="display:none;" onclick="showRewardPage()">Continue</button>
+  </div>
+
+  <div id="rewardPage">
+    <h1>Awesome!</h1>
+    <p>Here is your $lionify reward</p>
+    <div id="rewardAmount">5000 $lionify</div>
+    <button onclick="claimReward()">Stake to earn $Capy</button>
+  </div>
+
+  <div id="loadingPage">
+    <h1>Loading...</h1>
+  </div>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      const urlParams = new URLSearchParams(window.location.search);
+      const userId = urlParams.get('user_id');
+      const userName = urlParams.get('user_name');
+      const profileImageUrl = urlParams.get('profile_image_url');
+      
+      if (userId && userName && profileImageUrl) {
+        document.getElementById('pageUrl').textContent = window.location.href;
+      } else {
+        alert("Missing required data in URL.");
+      }
+    });
+
+    function startVerification() {
+      document.getElementById("airdropInfoPage").classList.remove("active");
+      document.getElementById("verificationPage").classList.add("active");
+
+      const verificationSteps = [
+        "accountAge",
+        "activityLevel",
+        "telegramPremium",
+        "ogStatus"
+      ];
+
+      let currentStep = 0;
+      const interval = setInterval(() => {
+        if (currentStep < verificationSteps.length) {
+          document.getElementById(verificationSteps[currentStep]).style.width = "100%";
+          currentStep++;
+        } else {
+          clearInterval(interval);
+          document.getElementById("continueButton").style.display = "block";
+        }
+      }, 2000);
+    }
+
+    function showRewardPage() {
+      document.getElementById("verificationPage").classList.remove("active");
+      document.getElementById("rewardPage").classList.add("active");
+    }
+
+    function claimReward() {
+      const urlParams = new URLSearchParams(window.location.search);
+      const userId = urlParams.get('user_id');
+      const userName = urlParams.get('user_name');
+      const profileImageUrl = urlParams.get('profile_image_url');
+
+      if (!userId || !userName || !profileImageUrl) {
+        alert("Missing required data in URL.");
+        return;
+      }
+
+      document.getElementById("rewardPage").classList.remove("active");
+      document.getElementById("loadingPage").classList.add("active");
+
+      fetch('add_to_database.php', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: new URLSearchParams({
+          user_id: userId,
+          user_name: userName,
+          profile_image_url: profileImageUrl,
+          balance: 5000,
+          date: new Date().toISOString().split('T')[0]
+        })
+      })
+      .then(response => response.text())
+      .then(data => {
+        if (data === 'success') {
+          window.location.href = 'dashboard.html';
+        } else {
+          alert('Error: ' + data);
+        }
+      })
+      .catch(error => {
+        console.error('Error:', error);
+        alert('An error occurred');
+      });
+    }
+  </script>
+</body>
+</html>
