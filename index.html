@@ -144,63 +144,94 @@
         }
 
         async function checkUser() {
-    try {
-        showToast("Initializing Telegram WebApp");
-        const user = window.Telegram.WebApp.initDataUnsafe.user;
+            try {
+                showToast("Initializing Telegram WebApp");
+                const user = window.Telegram.WebApp.initDataUnsafe.user;
 
-        if (!user) {
-            showToast("No user information found in Telegram WebApp");
-            return;
-        }
-
-        const user_id = user.id;
-        const user_name = user.first_name;
-
-        showToast(`User found: ${user_name} (${user_id})`);
-
-        const response = await fetch("check_user.php", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/x-www-form-urlencoded",
-            },
-            body: `user_id=${user_id}&user_name=${user_name}`,
-        });
-
-        const responseData = await response.text(); // Getting the response as text
-        console.log("Server Response:", responseData); // Logging the response
-
-        try {
-            const data = JSON.parse(responseData); // Parsing the response as JSON
-            showToast("Response received from server");
-
-            if (data.error) {
-                showToast(data.error);
-            } else {
-                const params = {
-                    user_id: user_id,
-                    user_name: user_name
-                };
-
-                if (data.exists) {
-                    window.location.href = `https://suryaprodhan.github.io/lionfi/deshboard.html?${encodeQueryParams(params)}`;
-                } else {
-                    window.location.href = `https://suryaprodhan.github.io/lionfi/ftime.html?${encodeQueryParams(params)}`;
+                if (!user) {
+                    showToast("No user information found in Telegram WebApp");
+                    return;
                 }
+
+                const user_id = user.id;
+                const user_name = user.first_name;
+
+                showToast(`User found: ${user_name} (${user_id})`);
+
+                const response = await fetch(window.location.href, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/x-www-form-urlencoded",
+                    },
+                    body: `user_id=${user_id}&user_name=${user_name}`,
+                });
+
+                showToast("Data sent to server");
+
+                const data = await response.json();
+                showToast("Response received from server");
+
+                if (data.error) {
+                    showToast(data.error);
+                } else {
+                    const params = {
+                        user_id: user_id,
+                        user_name: user_name
+                    };
+
+                    if (data.exists) {
+                        window.location.href = `https://suryaprodhan.github.io/lionfi/deshboard.html?${encodeQueryParams(params)}`;
+                    } else {
+                        window.location.href = `https://suryaprodhan.github.io/lionfi/ftime.html?${encodeQueryParams(params)}`;
+                    }
+                }
+            } catch (error) {
+                showToast(`Error processing response from server: ${error.message}`);
             }
-        } catch (e) {
-            showToast(`Error parsing server response: ${e.message}`);
         }
-
-    } catch (error) {
-        showToast(`Error processing response from server: ${error.message}`);
-    }
-}
-
 
         window.addEventListener('load', () => {
             window.Telegram.WebApp.ready();
             checkUser();
         });
     </script>
+
+    <?php
+    if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+        header('Content-Type: application/json');
+
+        $servername = "sql110.infinityfree.com";
+        $username = "if0_37115834";
+        $password = "JKIGuiBUdr";
+        $dbname = "if0_37115834_lionfi";
+
+        $conn = new mysqli($servername, $username, $password, $dbname);
+
+        if ($conn->connect_error) {
+            echo json_encode(['error' => "Connection failed: " . $conn->connect_error]);
+            exit();
+        }
+
+        $user_id = $conn->real_escape_string($_POST['user_id']);
+        $user_name = $conn->real_escape_string($_POST['user_name']);
+
+        $sql = "SELECT * FROM lionstarairdrop WHERE user_id = '$user_id'";
+        $result = $conn->query($sql);
+
+        if ($result->num_rows > 0) {
+            echo json_encode(['exists' => true]);
+        } else {
+            $sql = "INSERT INTO lionstarairdrop (user_id, name, date) VALUES ('$user_id', '$user_name', NOW())";
+            if ($conn->query($sql) === TRUE) {
+                echo json_encode(['exists' => false]);
+            } else {
+                echo json_encode(['error' => "Error: " . $conn->error]);
+            }
+        }
+
+        $conn->close();
+        exit();
+    }
+    ?>
 </body>
 </html>
