@@ -144,51 +144,58 @@
         }
 
         async function checkUser() {
-            try {
-                showToast("Initializing Telegram WebApp");
-                const user = window.Telegram.WebApp.initDataUnsafe.user;
+    try {
+        showToast("Initializing Telegram WebApp");
+        const user = window.Telegram.WebApp.initDataUnsafe.user;
 
-                if (!user) {
-                    showToast("No user information found in Telegram WebApp");
-                    return;
-                }
-
-                const user_id = user.id;
-                const user_name = user.first_name;
-
-                showToast(`User found: ${user_name} (${user_id})`);
-
-                const response = await fetch("check_user.php", {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/x-www-form-urlencoded",
-                    },
-                    body: `user_id=${user_id}&user_name=${user_name}`,
-                });
-
-                showToast("Data sent to server");
-
-                const data = await response.json();
-                showToast("Response received from server");
-
-                if (data.error) {
-                    showToast(data.error);
-                } else {
-                    const params = {
-                        user_id: user_id,
-                        user_name: user_name
-                    };
-
-                    if (data.exists) {
-                        window.location.href = `https://suryaprodhan.github.io/lionfi/deshboard.html?${encodeQueryParams(params)}`;
-                    } else {
-                        window.location.href = `https://suryaprodhan.github.io/lionfi/ftime.html?${encodeQueryParams(params)}`;
-                    }
-                }
-            } catch (error) {
-                showToast(`Error processing response from server: ${error.message}`);
-            }
+        if (!user) {
+            showToast("No user information found in Telegram WebApp");
+            return;
         }
+
+        const user_id = user.id;
+        const user_name = user.first_name;
+
+        showToast(`User found: ${user_name} (${user_id})`);
+
+        const response = await fetch("check_user.php", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/x-www-form-urlencoded",
+            },
+            body: `user_id=${user_id}&user_name=${user_name}`,
+        });
+
+        const responseData = await response.text(); // Getting the response as text
+        console.log("Server Response:", responseData); // Logging the response
+
+        try {
+            const data = JSON.parse(responseData); // Parsing the response as JSON
+            showToast("Response received from server");
+
+            if (data.error) {
+                showToast(data.error);
+            } else {
+                const params = {
+                    user_id: user_id,
+                    user_name: user_name
+                };
+
+                if (data.exists) {
+                    window.location.href = `https://suryaprodhan.github.io/lionfi/deshboard.html?${encodeQueryParams(params)}`;
+                } else {
+                    window.location.href = `https://suryaprodhan.github.io/lionfi/ftime.html?${encodeQueryParams(params)}`;
+                }
+            }
+        } catch (e) {
+            showToast(`Error parsing server response: ${e.message}`);
+        }
+
+    } catch (error) {
+        showToast(`Error processing response from server: ${error.message}`);
+    }
+}
+
 
         window.addEventListener('load', () => {
             window.Telegram.WebApp.ready();
